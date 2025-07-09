@@ -110,8 +110,8 @@ PlayerBox:AddToggle("AntiAnchorToggle", {
 PlayerBox:AddSlider("SpeedSlider", {
     Text = "WalkSpeed",
     Min = 10,
-    Max = 100,
-    Default = 16,
+    Max = 500,
+    Default = 25,
     Rounding = 0,
     Tooltip = "Sets your walk speed",
     Callback = function(val)
@@ -201,7 +201,7 @@ MainBox:AddToggle("GlassHighlightToggle", {
 MainBox:AddToggle("RedLightBypassToggle", {
     Text = "Red Light Bypass",
     Default = false,
-    Tooltip = "Allows you to walk on red light (creates SafeRedLightGreenLight folder in your character)",
+    Tooltip = "Anti shot leg etc",
     Callback = function(state)
         redLightBypassEnabled = state
     end
