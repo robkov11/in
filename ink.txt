@@ -1,0 +1,561 @@
+-- Obsidian UI + читы для Squid Game (Roblox)
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/Library.lua"))()
+
+local Window = Library:CreateWindow({
+    Title = "Invis hub",
+    Footer = "by kovlost. Ink game",
+    Center = true,
+    AutoShow = true,
+    Font = Enum.Font.Gotham,
+    CornerRadius = 8,
+    DPIScale = 0.9,
+    ToggleKeybind = Enum.KeyCode.RightControl,
+})
+
+local MainTab = Window:AddTab("Main", "shield")
+local MainBox = MainTab:AddLeftGroupbox("Main Features")
+local PlayerBox = MainTab:AddRightGroupbox("Player Stats")
+local GunsTab = Window:AddTab("Guns", "target")
+local GunsBox = GunsTab:AddLeftGroupbox("Gun Cheats")
+
+-- Сервисы и объекты
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Переменные для функций
+local antiStunEnabled = false
+local antiRagdollEnabled = false
+local infiniteStaminaEnabled = false
+local antiDeathEnabled = false
+local speedValue = 16
+local jumpValue = 50
+local antiCameraEnabled = false
+local antiRotateEnabled = false
+local antiAnchorEnabled = false
+local redLightBypassEnabled = false
+local infiniteAmmoEnabled = false
+local instantReloadEnabled = false
+local rapidFireEnabled = false
+local noRecoilEnabled = false
+local alwaysHeadshotEnabled = false
+local maxGunSpeedEnabled = false
+local alwaysCanFireGunEnabled = false
+local noCdEnabled = false
+local glassHighlightEnabled = false
+local silentAimEnabled = false
+local autoDalgonaEnabled = false
+local dalgonaAimEnabled = false
+
+-- Glass Highlighter: обновление каждые 0.1 секунды
+local lastGlassHighlight = 0
+local lastAutoDalgona = 0
+
+-- Анти-стан
+MainBox:AddToggle("AntiStunToggle", {
+    Text = "Anti-Stun",
+    Default = false,
+    Tooltip = "Removes stun from your character",
+    Callback = function(state)
+        antiStunEnabled = state
+    end
+})
+
+-- Анти-рагдолл
+MainBox:AddToggle("AntiRagdollToggle", {
+    Text = "Anti-Ragdoll",
+    Default = false,
+    Tooltip = "Removes ragdoll from your character",
+    Callback = function(state)
+        antiRagdollEnabled = state
+    end
+})
+
+-- Бесконечная стамина
+MainBox:AddToggle("InfiniteStaminaToggle", {
+    Text = "Infinite Stamina",
+    Default = false,
+    Tooltip = "Your stamina is always 100",
+    Callback = function(state)
+        infiniteStaminaEnabled = state
+    end
+})
+
+-- Анти-камера/анти-ограничения
+PlayerBox:AddToggle("AntiCameraToggle", {
+    Text = "Anti Camera Lock",
+    Default = false,
+    Tooltip = "Removes DisableCameraLerp attribute",
+    Callback = function(state)
+        antiCameraEnabled = state
+    end
+})
+PlayerBox:AddToggle("AntiRotateToggle", {
+    Text = "Anti Rotate Lock",
+    Default = false,
+    Tooltip = "Removes RotateDisabled from your character",
+    Callback = function(state)
+        antiRotateEnabled = state
+    end
+})
+PlayerBox:AddToggle("AntiAnchorToggle", {
+    Text = "Anti Anchor",
+    Default = false,
+    Tooltip = "Removes Anchor/Anchored folders from your character",
+    Callback = function(state)
+        antiAnchorEnabled = state
+    end
+})
+
+-- Слайдеры скорости и прыжка
+PlayerBox:AddSlider("SpeedSlider", {
+    Text = "WalkSpeed",
+    Min = 10,
+    Max = 100,
+    Default = 16,
+    Rounding = 0,
+    Tooltip = "Sets your walk speed",
+    Callback = function(val)
+        speedValue = val
+    end
+})
+PlayerBox:AddSlider("JumpSlider", {
+    Text = "JumpPower",
+    Min = 20,
+    Max = 200,
+    Default = 50,
+    Rounding = 0,
+    Tooltip = "Sets your jump power",
+    Callback = function(val)
+        jumpValue = val
+    end
+})
+
+-- Бесконечные патроны
+GunsBox:AddToggle("InfiniteAmmoToggle", {
+    Text = "Infinite Ammo",
+    Default = false,
+    Tooltip = "Ammo never decreases",
+    Callback = function(state) infiniteAmmoEnabled = state end
+})
+
+-- Мгновенная перезарядка
+GunsBox:AddToggle("InstantReloadToggle", {
+    Text = "Instant Reload",
+    Default = false,
+    Tooltip = "Reloads instantly",
+    Callback = function(state) instantReloadEnabled = state end
+})
+
+-- Максимальная скорострельность
+GunsBox:AddToggle("RapidFireToggle", {
+    Text = "Rapid Fire",
+    Default = false,
+    Tooltip = "Maximum fire rate",
+    Callback = function(state) rapidFireEnabled = state end
+})
+
+-- Убирает отдачу и разброс
+GunsBox:AddToggle("NoRecoilToggle", {
+    Text = "No Recoil/Spread",
+    Default = false,
+    Tooltip = "Removes recoil and spread",
+    Callback = function(state) noRecoilEnabled = state end
+})
+
+-- Всегда можно стрелять
+GunsBox:AddToggle("AlwaysCanFireGunToggle", {
+    Text = "Always CanFireGun",
+    Default = false,
+    Tooltip = "Always able to fire gun",
+    Callback = function(state) alwaysCanFireGunEnabled = state end
+})
+
+-- No CD
+GunsBox:AddToggle("NoCDToggle", {
+    Text = "No CD",
+    Default = false,
+    Tooltip = "Removes all cooldown folders from your character",
+    Callback = function(state) noCdEnabled = state end
+})
+
+-- Glass Highlighter
+MainBox:AddToggle("GlassHighlightToggle", {
+    Text = "Glass Highlighter",
+    Default = false,
+    Tooltip = "Highlights safe glass panels (green)",
+    Callback = function(state)
+        glassHighlightEnabled = state
+        if not state then
+            -- Reset highlight for all glass
+            for _, part in ipairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name == "GlassPart" then
+                    part.Color = Color3.new(1,1,1)
+                    part.Transparency = 0.5
+                end
+            end
+        end
+    end
+})
+
+-- Red Light Bypass
+MainBox:AddToggle("RedLightBypassToggle", {
+    Text = "Red Light Bypass",
+    Default = false,
+    Tooltip = "Allows you to walk on red light (creates SafeRedLightGreenLight folder in your character)",
+    Callback = function(state)
+        redLightBypassEnabled = state
+    end
+})
+
+-- Новый тоггл: HideAndSeek ESP
+MainBox:AddToggle("HideAndSeekESPToggle", {
+    Text = "HideAndSeek ESP",
+    Default = false,
+    Tooltip = "Подсвечивает искателей красным, а прячущихся синим (сквозь стены)",
+    Callback = function(state)
+        getgenv().hideAndSeekESPEnabled = state
+        if not state then
+            -- Удаляем все Highlight с игроков
+            for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+                if plr.Character then
+                    local h = plr.Character:FindFirstChildOfClass("Highlight")
+                    if h then h:Destroy() end
+                end
+            end
+        end
+    end
+})
+
+-- === Guns: настройка параметров MP5 и Revolver ===
+local weapons = game:GetService("ReplicatedStorage"):FindFirstChild("Weapons")
+local guns = weapons and weapons:FindFirstChild("Guns")
+local gunNames = {"MP5", "Revolver"}
+
+for _, gunName in ipairs(gunNames) do
+    local gun = guns and guns:FindFirstChild(gunName)
+    if gun then
+        local box = GunsTab:AddRightGroupbox(gunName .. " Stats")
+        for _, stat in ipairs(gun:GetChildren()) do
+            if stat:IsA("NumberValue") and stat.Name:lower() ~= "range" then
+                local min, max, def, round = 0, 100, stat.Value, 2
+
+                -- Pick range and rounding for some params
+                if stat.Name:lower():find("speed") then
+                    min, max, round = 0, 200, 1
+                elseif stat.Name:lower():find("spread") then
+                    min, max, round = 0, 10, 3
+                elseif stat.Name:lower():find("cd") or stat.Name:lower():find("cooldown") then
+                    min, max, round = 0, 5, 3
+                elseif stat.Name:lower():find("bullets") then
+                    min, max, round = 1, 100, 0
+                end
+
+                box:AddSlider(gunName .. "_" .. stat.Name, {
+                    Text = stat.Name,
+                    Min = min,
+                    Max = max,
+                    Default = def,
+                    Rounding = round,
+                    Callback = function(val)
+                        stat.Value = val
+                    end
+                })
+            end
+        end
+    end
+end
+
+-- Главный цикл патчей
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hum = char:FindFirstChildWhichIsA("Humanoid")
+    if not hum then return end
+    -- Анти-стан
+    if antiStunEnabled then
+        for _, obj in ipairs(char:GetChildren()) do
+            if obj.Name == "Stun" then obj:Destroy() end
+        end
+    end
+    -- Анти-рагдолл
+    if antiRagdollEnabled then
+        for _, obj in ipairs(char:GetChildren()) do
+            if obj.Name == "Ragdoll" then obj:Destroy() end
+        end
+    end
+    -- Бесконечная стамина
+    if infiniteStaminaEnabled and char:FindFirstChild("StaminaVal") then
+        char.StaminaVal.Value = 100
+    end
+    -- Анти-смерть
+    if antiDeathEnabled and hum.Health <= 0 then
+        hum.Health = hum.MaxHealth
+        if char:FindFirstChild("Dead") then char.Dead:Destroy() end
+    end
+    -- Анти-камера
+    if antiCameraEnabled and char:GetAttribute("DisableCameraLerp") then
+        char:SetAttribute("DisableCameraLerp", nil)
+    end
+    -- Анти-вращение
+    if antiRotateEnabled and char:FindFirstChild("RotateDisabled") then
+        char.RotateDisabled:Destroy()
+    end
+    -- Anti Anchor: удаляет Anchor/Anchored/anchor/anchored из модели игрока в Live
+    if antiAnchorEnabled then
+        local live = workspace:FindFirstChild("Live")
+        if live then
+            local char = live:FindFirstChild(LocalPlayer.Name)
+            if char then
+                for _, obj in ipairs(char:GetChildren()) do
+                    local n = obj.Name:lower()
+                    if n == "anchor" or n == "anchored" then
+                        obj:Destroy()
+                    end
+                end
+            end
+        end
+    end
+    -- Скорость и прыжок
+    hum.WalkSpeed = speedValue
+    hum.JumpPower = jumpValue
+    -- Red Light Bypass: создаём SafeRedLightGreenLight в Live, возвращаем модель в Live и удаляем подозрительные папки
+    if redLightBypassEnabled then
+        local ws = game:GetService("Workspace")
+        local live = ws:FindFirstChild("Live")
+        if live then
+            local charLive = live:FindFirstChild(LocalPlayer.Name)
+            -- Создаём SafeRedLightGreenLight
+            if charLive and not charLive:FindFirstChild("SafeRedLightGreenLight") then
+                Instance.new("Folder", charLive).Name = "SafeRedLightGreenLight"
+            end
+            -- Возвращаем модель в Live, если она не там
+            if LocalPlayer.Character and LocalPlayer.Character.Parent ~= live then
+                LocalPlayer.Character.Parent = live
+            end
+            -- Удаляем подозрительные папки
+            if charLive then
+                for _, name in ipairs({"InjuredWalking", "Died", "DiedEffect", "MovedRecentlyRedLight"}) do
+                    local obj = charLive:FindFirstChild(name)
+                    if obj then obj:Destroy() end
+                end
+            end
+        end
+    end
+    -- No CD: удаляем все папки-кд
+    if noCdEnabled then
+        for _, name in ipairs({
+            "CD Push", "CD Bottle", "CDDASHSTACKSCD", "LungeAttackWaitDebounce", "AlreadyDoneJump", "CD", "Cooldown", "CDTimer", "CDMultiplier"
+        }) do
+            local obj = char:FindFirstChild(name)
+            if obj then obj:Destroy() end
+        end
+    end
+    -- Infinite Ammo: оптимизация (кеширование)
+    if infiniteAmmoEnabled then
+        local function refillAmmo(container)
+            for _, obj in ipairs(container:GetChildren()) do
+                if obj:IsA("Folder") and obj.Name:match("^Info.+Client$") then
+                    local bullets = obj:FindFirstChild("Bullets")
+                    local maxBullets = obj:FindFirstChild("MaxBullets")
+                    if bullets and maxBullets and bullets.Value < maxBullets.Value then
+                        bullets.Value = maxBullets.Value
+                    end
+                end
+            end
+        end
+        if LocalPlayer.Character then
+            refillAmmo(LocalPlayer.Character)
+        end
+        if LocalPlayer:FindFirstChild("Backpack") then
+            refillAmmo(LocalPlayer.Backpack)
+        end
+        -- Старый способ: патч через ReplicatedStorage
+        local char = LocalPlayer.Character
+        if char then
+            for _, tool in ipairs(char:GetChildren()) do
+                if tool:IsA("Tool") and tool:GetAttribute("Gun") then
+                    local gunName = tool.Name
+                    local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                    local gunData = game:GetService("ReplicatedStorage"):FindFirstChild("Weapons")
+                    if info and info:FindFirstChild("Bullets") and gunData and gunData:FindFirstChild("Guns") and gunData.Guns:FindFirstChild(gunName) and gunData.Guns[gunName]:FindFirstChild("MaxBullets") then
+                        if info.Bullets.Value < gunData.Guns[gunName].MaxBullets.Value then
+                            info.Bullets.Value = gunData.Guns[gunName].MaxBullets.Value
+                        end
+                    end
+                end
+            end
+        end
+    end
+    -- Gun cheats
+    for _, tool in ipairs(char:GetChildren()) do
+        if tool:IsA("Tool") and tool:GetAttribute("Gun") then
+            local gunName = tool.Name
+            -- Instant Reload
+            if instantReloadEnabled then
+                local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                if info and info:FindFirstChild("Reloading") then
+                    info.Reloading.Value = false
+                end
+            end
+            -- Rapid Fire
+            if rapidFireEnabled then
+                local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                if info and info:FindFirstChild("FireRate") then
+                    info.FireRate.Value = 0.01
+                end
+            end
+            -- No Recoil/Spread
+            if noRecoilEnabled then
+                local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                if info then
+                    if info:FindFirstChild("Recoil") then info.Recoil.Value = 0 end
+                    if info:FindFirstChild("Spread") then info.Spread.Value = 0 end
+                end
+            end
+            -- Always Headshot
+            if alwaysHeadshotEnabled then
+                local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                if info and info:FindFirstChild("HitPart") then
+                    info.HitPart.Value = "Head"
+                end
+            end
+            -- Max WalkSpeed/RunSpeed
+            if maxGunSpeedEnabled then
+                if char:FindFirstChild("Humanoid") then
+                    char.Humanoid.WalkSpeed = 100
+                end
+                local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                if info then
+                    if info:FindFirstChild("WalkSpeed") then info.WalkSpeed.Value = 100 end
+                    if info:FindFirstChild("RunSpeed") then info.RunSpeed.Value = 100 end
+                end
+            end
+            -- Always CanFireGun
+            if alwaysCanFireGunEnabled then
+                local stun = char:FindFirstChild("Stun")
+                if stun then
+                    stun:SetAttribute("CanFireGun", true)
+                end
+                local info = char:FindFirstChild("Info" .. gunName .. "Client")
+                if info and info:FindFirstChild("CanFireGun") then
+                    info.CanFireGun.Value = true
+                end
+            end
+        end
+    end
+    -- Glass Highlighter
+    if glassHighlightEnabled and (tick() - lastGlassHighlight > 0.09) then
+        lastGlassHighlight = tick()
+        local bridge = workspace:FindFirstChild("GlassBridge")
+        if bridge then
+            local holder = bridge:FindFirstChild("GlassHolder")
+            if holder then
+                for _, panel in ipairs(holder:GetDescendants()) do
+                    if panel:IsA("BasePart") and panel.Name:lower() == "glasspart" then
+                        local attrs = panel:GetAttributes()
+                        local count = 0
+                        local onlyGlassPart = false
+                        for k in pairs(attrs) do
+                            count = count + 1
+                            if k:lower() == "glasspart" then onlyGlassPart = true else onlyGlassPart = false break end
+                        end
+                        if count == 1 and onlyGlassPart then
+                            panel.Color = Color3.new(0,1,0)
+                            panel.Transparency = 0.2
+                        else
+                            panel.Color = Color3.new(1,1,1)
+                            panel.Transparency = 0.5
+                        end
+                    end
+                end
+            end
+        end
+    end
+    -- HideAndSeek ESP: обновление Highlight
+    if getgenv().hideAndSeekESPEnabled then
+        for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local isHider = plr:GetAttribute("IsHider")
+                local color = isHider and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(255, 0, 0)
+                local highlight = plr.Character:FindFirstChildOfClass("Highlight")
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.Name = "ESP_Highlight"
+                    highlight.FillColor = color
+                    highlight.OutlineColor = color
+                    highlight.FillTransparency = 0.2
+                    highlight.OutlineTransparency = 0
+                    highlight.Adornee = plr.Character
+                    highlight.Parent = plr.Character
+                else
+                    highlight.FillColor = color
+                    highlight.OutlineColor = color
+                end
+            end
+        end
+    end
+end)
+
+-- Silent Aim: хук FireServer для FiredGunClient
+local oldFireServer
+oldFireServer = hookmetamethod(game, "__namecall", function(self, ...)
+    if silentAimEnabled and tostring(self) == "FiredGunClient" and getnamecallmethod() == "FireServer" then
+        local args = {...}
+        if typeof(args[2]) == "table" then
+            local closestHead
+            local minDist = math.huge
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") and not plr.Character:FindFirstChild("Dead") then
+                        local dist = (char.HumanoidRootPart.Position - plr.Character.Head.Position).Magnitude
+                        if dist < minDist then
+                            minDist = dist
+                            closestHead = plr.Character.Head
+                        end
+                    end
+                end
+            end
+            if closestHead then
+                args[2].FirePosition = closestHead.Position
+            end
+        end
+        return oldFireServer(self, unpack(args))
+    end
+    return oldFireServer(self, ...)
+end)
+
+-- Патч: отключаем ошибку Dalgona (clicked wrong) только если включён тоггл
+-- Удаляем все тогглы и логику, связанные с Dalgona
+-- (autoDalgonaEnabled, dalgonaAimEnabled, dalgonaAntiWrongEnabled, DalgonaAutoAimHoldToggle и соответствующий код)
+
+Library:Notify({Title = "Invis hub", Content = "loaded!", Duration = 3})
+
+-- ESP логика: обновление раз в 1 секунду
+spawn(function()
+    while true do
+        if getgenv().hideAndSeekESPEnabled then
+            for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local isHider = plr:GetAttribute("IsHider")
+                    local color = isHider and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(255, 0, 0)
+                    local highlight = plr.Character:FindFirstChildOfClass("Highlight")
+                    if not highlight then
+                        highlight = Instance.new("Highlight")
+                        highlight.Name = "ESP_Highlight"
+                        highlight.FillColor = color
+                        highlight.OutlineColor = color
+                        highlight.FillTransparency = 0.2
+                        highlight.OutlineTransparency = 0
+                        highlight.Adornee = plr.Character
+                        highlight.Parent = plr.Character
+                    else
+                        highlight.FillColor = color
+                        highlight.OutlineColor = color
+                    end
+                end
+            end
+        end
+        wait(1)
+    end
+end)
