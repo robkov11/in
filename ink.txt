@@ -207,15 +207,15 @@ MainBox:AddToggle("RedLightBypassToggle", {
     end
 })
 
--- Новый тоггл: HideAndSeek ESP
+-- HideAndSeek ESP
 MainBox:AddToggle("HideAndSeekESPToggle", {
     Text = "HideAndSeek ESP",
     Default = false,
-    Tooltip = "Подсвечивает искателей красным, а прячущихся синим (сквозь стены)",
+    Tooltip = "Highlights seekers in red and hiders in blue (through walls)",
     Callback = function(state)
         getgenv().hideAndSeekESPEnabled = state
         if not state then
-            -- Удаляем все Highlight с игроков
+            -- Removes all Highlights from players
             for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
                 if plr.Character then
                     local h = plr.Character:FindFirstChildOfClass("Highlight")
